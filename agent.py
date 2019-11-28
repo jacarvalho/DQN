@@ -71,12 +71,14 @@ class Agent:
         return loss.data.item()
 
     def train(self, n_episodes=1000):
+        episode_info = dict()
+        episode_info['n_episodes'] = n_episodes
         for i_episode in range(n_episodes):
-            print("ep: {:4}/{} -> ".format(i_episode+1, n_episodes), end=' ')
             state = self.env.reset()
             state = torch.from_numpy(state.reshape(1, -1)).to(device, dtype=torch.float32)
             ep_avg_bellman_error = 0.
             ret = 0.
+            episode_info['i_episode'] = i_episode
             for t in count():
                 action = self.select_action(state)
                 nextstate, reward, done, _ = self.env.step(action.item())
@@ -92,7 +94,8 @@ class Agent:
                     ep_avg_bellman_error += self.optimize()
 
                 if done or t >= self.env.spec.max_episode_steps - 1:
-                    print("ret: {}, avg bellman error: {:.6f}".format(ret, ep_avg_bellman_error/t))
+                    episode_info['return'] = ret
+                    episode_info['avg_bellman_error'] = ep_avg_bellman_error/t
                     break
 
             if (i_episode % self.target_update_n_steps) == 0:
@@ -100,6 +103,10 @@ class Agent:
 
             if (i_episode % self.evaluate_every_n_steps) == 0:
                 self.evaluate(render=True)
+
+            # Log information on the episode
+            print_ep_info(episode_info)
+
         self.env.close()
 
     def evaluate(self, render=False):

@@ -74,3 +74,7 @@ class EpsilonScheduleLinear(EpsilonSchedule):
         self._n_steps += 1
         return self._eps
 
+
+def print_ep_info(ep_info):
+    print("ep: {:4}/{} -> ".format(ep_info['i_episode'] + 1, ep_info['n_episodes']), end=' ')
+    print("ret: {}, avg bellman error: {:.6f}".format(ep_info['return'], ep_info['avg_bellman_error']))
